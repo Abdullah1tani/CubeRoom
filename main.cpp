@@ -1,7 +1,6 @@
 #include <iostream>
 #include <list>
-//#include "audio/irrKlang.h"
-#define GLEW_STATIC 1
+#include <irrKlang.h>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <glm/gtc/matrix_transform.hpp>
@@ -10,9 +9,13 @@
 #include <glm/glm.hpp> 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
+
+#define GLEW_STATIC 1
+
 using namespace glm;
 using namespace std;
-//using namespace irrklang;
+using namespace irrklang;
+
 const char* getVertexShaderSource()
 {
     return
@@ -335,15 +338,15 @@ int createTexturedBufferObject(texturedVertex* vertexArray, int arraySize)
 }
 GLuint loadTexture(const char* filename)
 {
-    // Step1 Create and bind textures
+    // Create and bind textures
     GLuint textureId = 0;
     glGenTextures(1, &textureId);
     assert(textureId != 0);
     glBindTexture(GL_TEXTURE_2D, textureId);
-    // Step2 Set filter parameters  
+    // Set filter parameters  
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // Step3 Load Textures with dimension data
+    // Load Textures with dimension data
     int width, height, nrChannels;
     unsigned char* data = stbi_load(filename, &width, &height, &nrChannels, 0);
     if (!data)
@@ -351,7 +354,7 @@ GLuint loadTexture(const char* filename)
         std::cerr << "Error::Texture could not load texture file:" << filename << std::endl;
         return 0;
     }
-    // Step4 Upload the texture to the GPU
+    // Upload the texture to the GPU
     GLenum format = 0;
     if (nrChannels == 1)
         format = GL_RED;
@@ -360,7 +363,7 @@ GLuint loadTexture(const char* filename)
     else if (nrChannels == 4)
         format = GL_RGBA;
     glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-    // Step5 Free resources
+    // Free resources
     stbi_image_free(data);
     glBindTexture(GL_TEXTURE_2D, 0);
     return textureId;
@@ -395,12 +398,7 @@ void SetUniform1Value(GLuint shader_id, const char* uniform_name, T uniform_valu
     glUniform1i(glGetUniformLocation(shader_id, uniform_name), uniform_value);
     glUseProgram(0);
 }
-//===============================================================================================================================================================================================================================================================
-//===============================================================================================================================================================================================================================================================
-//===============================================================================================================================================================================================================================================================
-//===============================================================================================================================================================================================================================================================
-//===============================================================================================================================================================================================================================================================
-//===============================================================================================================================================================================================================================================================
+// ============================================================================================================== //
 int main(int argc, char* argv[])
 {
     // Initialize GLFW and OpenGL version
@@ -409,10 +407,22 @@ int main(int argc, char* argv[])
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    //ISoundEngine* SoundEngine = createIrrKlangDevice();
-    //SoundEngine->play2D("audio/breakout.mp3", true);
+    
+    // Create sound engine
+    ISoundEngine* SoundEngine = createIrrKlangDevice();
+
+    // error starting up the sound engine
+    if (!SoundEngine)
+    {
+        std::cerr << "Error::Could not start the sound engine" << std::endl;
+        return -1;
+    }
+         
+    // Play breakout on loop
+    SoundEngine->play2D("assets/audio/breakout.mp3", true);
+    
     // Create Window
-    GLFWwindow* window = glfwCreateWindow(1024, 768, "Assignment 2", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(1600, 800, "Cube Room", NULL, NULL);
     if (window == NULL)
     {
         std::cerr << "Failed to create GLFW window" << std::endl;
@@ -420,6 +430,7 @@ int main(int argc, char* argv[])
         return -1;
     }
     glfwMakeContextCurrent(window);
+
     //Initialize GLEW
     glewExperimental = true;
     if (glewInit() != GLEW_OK) {
@@ -427,8 +438,10 @@ int main(int argc, char* argv[])
         glfwTerminate();
         return -1;
     }
+
     //Disable mouse cursor
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
     //Textures
     GLuint cubeTexture = loadTexture("assets/textures/cube.jpg");
     GLuint greenTexture = loadTexture("assets/textures/green.jpg");
@@ -440,11 +453,14 @@ int main(int argc, char* argv[])
     GLuint playTexture = loadTexture("assets/textures/play.png");
     GLuint winTexture = loadTexture("assets/textures/win.jpg");
     GLuint instructionsTexture = loadTexture("assets/textures/instructions.png");
+
     //backgroun color
     glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+
     //use shaders
     int texturedProgram = compileAndLinkShaders(getVertexShaderSource(), getFragmentShaderSource());
     int texturedShaderProgram = compileAndLinkShaders(getTexturedVertexShaderSource(), getTexturedFragmentShaderSource());
+
     //Camera
     vec3 cameraPosition(0.0f, 0.0f, -10.0f);
     vec3 cameraLookAt(0.0f, 0.0f, 0.0f);
@@ -452,18 +468,23 @@ int main(int argc, char* argv[])
     float cameraVerticalAngle = 0.0f;
     float fov = 45.0f;
     float cameraSpeed = 6.0f;
+
     //projection matrix
     mat4 projectionMatrix = perspective(radians(fov), 800.0f / 600.0f, 0.1f, 200.0f);
+
     //view matrix
     mat4 viewMatrix = lookAt(cameraPosition, cameraPosition + cameraLookAt, vec3(0.0f, 1.0f, 0.0f));
     setViewMatrix(texturedProgram, viewMatrix);
     setViewMatrix(texturedShaderProgram, viewMatrix);
     setProjectionMatrix(texturedProgram, projectionMatrix);
     setProjectionMatrix(texturedShaderProgram, projectionMatrix);
+
     // Define objects
     GLuint texturedcubevao = createTexturedBufferObject(texturedCube, sizeof(texturedCube));
+
     //Depth Test
     glEnable(GL_DEPTH_TEST);
+
     //frame time
     float lastFrameTime = glfwGetTime();
     double lastMousePosX, lastMousePosY;
@@ -496,20 +517,23 @@ int main(int argc, char* argv[])
         glUseProgram(texturedShaderProgram);
         glActiveTexture(GL_TEXTURE0);
         GLuint textureLocation = glGetUniformLocation(texturedShaderProgram, "textureSampler");
-        //room =====================================================================================================================================
+
+        //room =====================================================================
         glBindTexture(GL_TEXTURE_2D, cubeTexture);
         glUniform1i(textureLocation, 0);
         mat4 cubeRoom = translate(mat4(1.0f), vec3(0.0f, 0.0f, 0.0f)) * scale(mat4(1.0f), vec3(15.0f, 7.0f, 30.0f));
         setUniformMatrix(texturedProgram, cubeRoom);
         glBindVertexArray(texturedcubevao);
         glDrawArrays(GL_TRIANGLES, 0, sizeof(texturedCube));
-        //play screen ==============================================================================================================================
+
+        //play screen =====================================================================
         if (game)
         {
             glBindTexture(GL_TEXTURE_2D, 0);
         }
         else if (win)
         {
+            SoundEngine->play2D("assets/audio/victory.mp3");
             glBindTexture(GL_TEXTURE_2D, winTexture);
         }
         else
@@ -521,62 +545,70 @@ int main(int argc, char* argv[])
         setUniformMatrix(texturedProgram, playScreen);
         glBindVertexArray(texturedcubevao);
         glDrawArrays(GL_TRIANGLES, 0, sizeof(texturedCube));
-        //instructions screen ===============================================================================================================================
+
+        //instructions screen =====================================================================
         glBindTexture(GL_TEXTURE_2D, instructionsTexture);
         mat4 instructionsScreen = translate(mat4(1.0f), vec3(0.0f, 0.0f, -14.7f)) * rotate(mat4(1.0f), radians(180.0f), vec3(0.0f, 0.0f, 1.0f)) * rotate(mat4(1.0f), radians(180.0f), vec3(0.0f, 1.0f, 0.0f)) * scale(mat4(1.0f), vec3(10.0f, 5.0f, 0.5f));
         setUniformMatrix(texturedProgram, instructionsScreen);
         glBindVertexArray(texturedcubevao);
         glDrawArrays(GL_TRIANGLES, 0, sizeof(texturedCube));
-        //red line ==========================================================================================================================================
+
+        //red line =====================================================================
         glBindTexture(GL_TEXTURE_2D, redTexture);
         glUniform1i(textureLocation, 0);
         mat4 line = translate(mat4(1.0f), vec3(0.0f, -3.4f, -5.0f)) * scale(mat4(1.0f), vec3(15.0f, 0.0f, 0.4f));
         setUniformMatrix(texturedProgram, line);
         glBindVertexArray(texturedcubevao);
         glDrawArrays(GL_TRIANGLES, 0, sizeof(texturedCube));
-        //green cube =====================================================================================================================================
+
+        //green cube =====================================================================
         glBindTexture(GL_TEXTURE_2D, greenTexture);
         glUniform1i(textureLocation, 0);
         mat4 greenCube = translate(mat4(1.0f), vec3(4.0f, -2.0f, 0.0f)) * rotate(mat4(1.0f), radians(45.0f), vec3(0.0f, 0.0f, 1.0f)) * rotate(mat4(1.0f), radians(angle), vec3(0.0f, 1.0f, 0.0f)) * scale(mat4(1.0f), vec3(1.0f, 1.0f, 1.0f));
         setUniformMatrix(texturedProgram, greenCube);
         glBindVertexArray(texturedcubevao);
         glDrawArrays(GL_TRIANGLES, 0, sizeof(texturedCube));
-        //blue cube =====================================================================================================================================
+
+        //blue cube =====================================================================
         glBindTexture(GL_TEXTURE_2D, blueTexture);
         glUniform1i(textureLocation, 0);
         mat4 blueCube = translate(mat4(1.0f), vec3(4.0f, -2.0f, -3.0f)) * rotate(mat4(1.0f), radians(45.0f), vec3(0.0f, 0.0f, 1.0f)) * rotate(mat4(1.0f), radians(angle), vec3(0.0f, 1.0f, 0.0f)) * scale(mat4(1.0f), vec3(1.0f, 1.0f, 1.0f));
         setUniformMatrix(texturedProgram, blueCube);
         glBindVertexArray(texturedcubevao);
         glDrawArrays(GL_TRIANGLES, 0, sizeof(texturedCube));
-        //red cube =====================================================================================================================================
+
+        //red cube =====================================================================
         glBindTexture(GL_TEXTURE_2D, redTexture);
         glUniform1i(textureLocation, 0);
         mat4 redCube = translate(mat4(1.0f), vec3(4.0f, -2.0f, 3.0f)) * rotate(mat4(1.0f), radians(45.0f), vec3(0.0f, 0.0f, 1.0f)) * rotate(mat4(1.0f), radians(angle), vec3(0.0f, 1.0f, 0.0f)) * scale(mat4(1.0f), vec3(1.0f, 1.0f, 1.0f));
         setUniformMatrix(texturedProgram, redCube);
         glBindVertexArray(texturedcubevao);
         glDrawArrays(GL_TRIANGLES, 0, sizeof(texturedCube));
-        //magenta cube =====================================================================================================================================
+
+        //magenta cube =====================================================================
         glBindTexture(GL_TEXTURE_2D, magentaTexture);
         glUniform1i(textureLocation, 0);
         mat4 magentaCube = translate(mat4(1.0f), vec3(-4.0f, -2.0f, 0.0f)) * rotate(mat4(1.0f), radians(45.0f), vec3(0.0f, 0.0f, 1.0f)) * rotate(mat4(1.0f), radians(angle), vec3(0.0f, 1.0f, 0.0f)) * scale(mat4(1.0f), vec3(1.0f, 1.0f, 1.0f));
         setUniformMatrix(texturedProgram, magentaCube);
         glBindVertexArray(texturedcubevao);
         glDrawArrays(GL_TRIANGLES, 0, sizeof(texturedCube));
-        //yellow cube =====================================================================================================================================
+
+        //yellow cube =====================================================================
         glBindTexture(GL_TEXTURE_2D, yellowTexture);
         glUniform1i(textureLocation, 0);
         mat4 yellowCube = translate(mat4(1.0f), vec3(-4.0f, -2.0f, 3.0f)) * rotate(mat4(1.0f), radians(45.0f), vec3(0.0f, 0.0f, 1.0f)) * rotate(mat4(1.0f), radians(angle), vec3(0.0f, 1.0f, 0.0f)) * scale(mat4(1.0f), vec3(1.0f, 1.0f, 1.0f));
         setUniformMatrix(texturedProgram, yellowCube);
         glBindVertexArray(texturedcubevao);
         glDrawArrays(GL_TRIANGLES, 0, sizeof(texturedCube));
-        //orange cube =====================================================================================================================================
+
+        //orange cube =====================================================================
         glBindTexture(GL_TEXTURE_2D, orangeTexture);
         glUniform1i(textureLocation, 0);
         mat4 orangeCube = translate(mat4(1.0f), vec3(-4.0f, -2.0f, -3.0f)) * rotate(mat4(1.0f), radians(45.0f), vec3(0.0f, 0.0f, 1.0f)) * rotate(mat4(1.0f), radians(angle), vec3(0.0f, 1.0f, 0.0f)) * scale(mat4(1.0f), vec3(1.0f, 1.0f, 1.0f));
         setUniformMatrix(texturedProgram, orangeCube);
         glBindVertexArray(texturedcubevao);
         glDrawArrays(GL_TRIANGLES, 0, sizeof(texturedCube));
-        //game ==========================================================================================================================================================================================================================================================================
+        //game =====================================================================
         if (game)
         {
             if (g)
@@ -635,6 +667,7 @@ int main(int argc, char* argv[])
             }
             if (speed - 13.0f >= 5)
             {
+                SoundEngine->play2D("assets/audio/solid.wav");
                 game = false;
                 win = false;
                 score = 0;
@@ -647,55 +680,61 @@ int main(int argc, char* argv[])
             }
         }
         //green cube disappear
-        if ((glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS) && g == true)
+        if ((glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS) && g && game)
         {
+            SoundEngine->play2D("assets/audio/bleep.mp3");
             g = false;
             b = true;
             score++;
             speed = 0.0f;
         }
         //blue cube disappear
-        if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS && b == true)
+        if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS && b && game)
         {
+            SoundEngine->play2D("assets/audio/bleep.wav");
             b = false;
             r = true;
             score++;
             speed = 0.0f;
         }
         //red cube disappear
-        if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS && r == true)
+        if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS && r && game)
         {
+            SoundEngine->play2D("assets/audio/bleep.mp3");
             r = false;
             y = true;
             score++;
             speed = 0.0f;
         }
         //yellow cube disappear
-        if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS && y == true)
+        if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS && y && game)
         {
+            SoundEngine->play2D("assets/audio/bleep.wav");
             y = false;
             m = true;
             score++;
             speed = 0.0f;
         }
         //magenta cube disappear
-        if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS && m == true)
+        if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS && m && game)
         {
+            SoundEngine->play2D("assets/audio/bleep.mp3");
             m = false;
             o = true;
             score++;
             speed = 0.0f;
         }
         //orange cube disappear
-        if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS && o == true)
+        if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS && o && game)
         {
+            SoundEngine->play2D("assets/audio/bleep.wav");
             o = false;
             g = true;
             score++;
             speed = 0.0f;
         }
         //start game
-        if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS && game != true)
+        if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS && !game)
         {
             game = true;
             win = false;
@@ -752,6 +791,8 @@ int main(int argc, char* argv[])
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+    // delete sound engine
+    SoundEngine->drop();
     // Shutdown GLFW
     glfwTerminate();
     return 0;

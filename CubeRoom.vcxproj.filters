@@ -20,7 +20,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="stb_image.h">
+    <ClInclude Include="assets\libraries\stb_image.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="assets\libraries\glfw-3.4.bin.WIN64\glfw-3.4.bin.WIN64\include\GLFW\glfw3.h">
@@ -133,5 +133,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="glew32.dll" />
+    <None Include="irrKlang.dll" />
+    <None Include="ikpMP3.dll" />
   </ItemGroup>
 </Project>
