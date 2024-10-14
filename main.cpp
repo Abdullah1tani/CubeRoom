@@ -421,8 +421,14 @@ int main(int argc, char* argv[])
     // Play breakout on loop
     SoundEngine->play2D("assets/audio/breakout.mp3", true);
     
-    // Create Window
-    GLFWwindow* window = glfwCreateWindow(1600, 800, "Cube Room", NULL, NULL);
+    // Get the primary monitor
+    GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode* mode = glfwGetVideoMode(primaryMonitor);
+
+    // Create a fullscreen window on the primary monitor
+    GLFWwindow* window = glfwCreateWindow(mode->width, mode->height, "Cube Room", primaryMonitor, NULL);
+
+    // Exit program if failed to create window
     if (window == NULL)
     {
         std::cerr << "Failed to create GLFW window" << std::endl;
@@ -510,6 +516,7 @@ int main(int argc, char* argv[])
         }
         else if (score == 18)
         {
+            SoundEngine->play2D("assets/audio/victory.mp3");
             win = true;
             game = false;
             score = 0;
@@ -533,7 +540,6 @@ int main(int argc, char* argv[])
         }
         else if (win)
         {
-            SoundEngine->play2D("assets/audio/victory.mp3");
             glBindTexture(GL_TEXTURE_2D, winTexture);
         }
         else
