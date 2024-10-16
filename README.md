@@ -85,3 +85,30 @@ If you're using a compiler or operating system other than Visual Studio on Windo
 
 ### Notes
 Make sure the required `.dll` files (`glew32.dll`, `irrKlang.dll`, `ikpMP3.dll`) are placed in the same directory as the executable when running the project on Windows.
+
+## Game Objective
+- **Goal**: Destroy 18 cubes before any of them cross the red line.
+- **Game Over**: If a cube crosses the red line, the game is over.
+
+## Controls
+Once the program is running, use the following controls to interact with the game:
+
+### Movement:
+- `W`: Move forward
+- `S`: Move backward
+- `A`: Move left
+- `D`: Move right
+
+### Game Actions:
+- `P`: Start the game
+- `G`: Destroy green cubes
+- `B`: Destroy blue cubes
+- `R`: Destroy red cubes
+- `Y`: Destroy yellow cubes
+- `O`: Destroy orange cubes
+- `M`: Destroy magenta cubes
+
+### Exit:
+- `ESC`: Terminate the program
+
+## Demo Video
