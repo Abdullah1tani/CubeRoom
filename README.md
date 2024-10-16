@@ -1,6 +1,6 @@
 # Cube Room
 
-The Cube Room project is part of the project interactive [digital museum]([https://github.com/mboudr35/glgine](https://github.com/mboudr35/glgine/tree/music_show)) project that was created by a team of 5 and featured four sections:
+The Cube Room project is part of the project interactive [digital museum](https://github.com/mboudr35/glgine/tree/music_show) project that was created by a team of 5 and featured four sections:
 - **Teleporting Train:** A room with a train that runs on train tracks. At the end of the track is a portal. The user can press E to board the train, which will make the camera follow the train as it moves along the track and through the portal.
 - **Audio room:** An audio visualizer, that takes an audio file, and generates a visualization of the magnitude plot, using Fourier transforms.
 - **Cube Room:** A room full of cubes, which come towards the user upon starting the game. The user must then press different keys properly to make the cubes disappear as they approach.
