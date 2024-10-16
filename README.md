@@ -9,12 +9,12 @@ The Cube Room project is part of the project interactive [digital museum](https:
 The **cube room** section is my contribution to the interactive digital museum project.
 
 ## Summary
-- [Implementation](#Implementation)
-- [Project Structure](#Project-Structure)
-- [Installation Guide](#Installation-Guide)
-- [Game Objective](#Game-Objective)
-- [Controls](#Controls)
-- [Video](#Video)
+1. [Implementation](#Implementation)
+2. [Project Structure](#Project-Structure)
+3. [Installation Guide](#Installation-Guide)
+4. [Game Objective](#Game-Objective)
+5. [Controls](#Controls)
+6. [Video](#Video)
 
 ## Implementation
 The **Cube Room** was inspired by the VR game *Beat Saber*, where cubes move toward the player, and the objective is to slice as many as possible. 
